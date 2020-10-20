@@ -1,0 +1,21 @@
+# allowing insecure connections to a local docker registry from all hosts
+- hosts: other
+  gather_facts: no
+  vars:
+    reg_host: master
+  tasks:
+    - copy:
+        content: |
+          {
+            "insecure-registries" : ["{{ reg_host }}:5000"]
+          }
+        dest: /etc/docker/daemon.json
+      notify: restart
+
+  handlers:
+    - systemd:
+        name: docker
+        state: restarted
+        enabled: yes
+        daemon_reload: yes
+      listen: restart
