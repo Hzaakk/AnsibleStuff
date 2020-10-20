@@ -1,0 +1,3 @@
+{% for host in groups['to_include_in_hosts_file'] %}
+{{ hostvars[host].ansible_default_ipv4.address }} {{ hostvars[host].ansible_fqdn }} {{ hostvars[host].ansible_hostname }}
+{% endfor %}
