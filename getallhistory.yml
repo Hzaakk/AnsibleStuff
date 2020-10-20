@@ -19,16 +19,28 @@
 - hosts: localhost
   gather_facts: no
   tasks:
-    - shell: 'find /tmp/all_history -type f -exec cat {} \;'
+    - find:
+        path: /tmp/all_history/
+        recurse: yes
+        hidden: yes
+      register: history_files
+
+    - slurp:
+        src: "{{ item.path }}"
+      loop: "{{ history_files.files }}"
       register: all_history
-      changed_when: false
 
     - file:
-        path: /tmp/all_history
+        path: "{{ item }}"
         state: absent
+      loop:
+        - /tmp/all_history/
+        - /root/all_history.txt
 
-    - copy:
-        content: "{{ all_history.stdout }}"
+    - blockinfile:
+        marker: ''
+        content: "{{ item.content | b64decode }}"
         dest: /root/all_history.txt
-        force: yes
+        create: yes
+      loop: "{{ all_history.results }}"
 ...
