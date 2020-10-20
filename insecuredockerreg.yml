@@ -1,5 +1,5 @@
 # allowing insecure connections to a local docker registry from all hosts
-- hosts: other
+- hosts: all
   gather_facts: no
   vars:
     reg_host: master
