@@ -1,0 +1,23 @@
+---
+# getting all bash histories across all machines for different users into one file
+# note: make sure others dont get access to the file as it may contain passwords and other secrets
+- hosts: all
+  gather_facts: no
+  vars:
+    users:
+      - user
+      - root
+
+  tasks:
+    - fetch:
+        src: "~/.bash_history"
+        dest: /tmp/all_history
+      become: yes
+      become_user: "{{ item }}"
+      loop: "{{ users }}"
+
+- hosts: localhost
+  gather_facts: no
+  tasks:
+    - shell: 'find /tmp/all_history -exec cat {} \; > /root/all_history.txt; rm -rf /tmp/all_history'
+...
