@@ -2,7 +2,6 @@
 # copying all ssh keys to all hosts from and to all users specified
 - hosts: all
   become: yes
-  gather_facts: no
   vars:
     users:
       - user
@@ -16,6 +15,8 @@
         ssh_key_type: rsa
         ssh_key_bits: 4096
         ssh_key_file: .ssh/id_rsa
+        comment: ""
+        ssh_key_comment: "{{ item }}@{{ ansible_hostname }}"
       loop: "{{ users }}"
 
     - fetch:
@@ -33,7 +34,7 @@
         register: key_files
 
       - copy:
-          src: /tmp/ssh_keys/
+          src: /tmp/ssh_keys
           dest: /root/ssh_keys
 
       - file:
