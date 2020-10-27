@@ -1,0 +1,60 @@
+---
+# copying all ssh keys to all hosts from and to all users specified
+- hosts: all
+  become: yes
+  gather_facts: no
+  vars:
+    users:
+      - user
+      - root
+
+  tasks:
+
+    - user:
+        name: "{{ item }}"
+        generate_ssh_key: yes
+        ssh_key_type: rsa
+        ssh_key_bits: 4096
+        ssh_key_file: .ssh/id_rsa
+      loop: "{{ users }}"
+
+    - fetch:
+        src: "~/.ssh/id_rsa.pub"
+        dest: /tmp/ssh_keys/
+      become: yes
+      become_user: "{{ item }}"
+      loop: "{{ users }}"
+
+    - block:
+
+      - find:
+          path: /tmp/ssh_keys/
+          recurse: yes
+        register: key_files
+
+      - copy:
+          src: /tmp/ssh_keys/
+          dest: /root/ssh_keys
+
+      - file:
+          path: /tmp/ssh_keys/
+          state: absent
+
+      - shell: "find /root/ssh_keys/ -type f | xargs cat"
+        register: shell
+        changed_when: false
+
+      - set_fact:
+          keys: "{{ shell.stdout }}"
+
+      when: inventory_hostname == "localhost"
+
+    - blockinfile:
+        block: "{{ hostvars['localhost']['keys'] }}"
+        dest: ~/.ssh/authorized_keys
+        state: present
+        create: yes
+      become: yes
+      become_user: "{{ item }}"
+      loop: "{{ users }}"
+...
