@@ -11,7 +11,7 @@
   tasks:
     - fetch:
         src: "~/.bash_history"
-        dest: /tmp/all_history
+        dest: /tmp/all_history/
       become: yes
       become_user: "{{ item }}"
       loop: "{{ users }}"
@@ -25,22 +25,18 @@
         hidden: yes
       register: history_files
 
-    - slurp:
-        src: "{{ item.path }}"
-      loop: "{{ history_files.files }}"
-      register: all_history
-
     - file:
-        path: "{{ item }}"
+        path: /root/all_history.txt
         state: absent
-      loop:
-        - /tmp/all_history/
-        - /root/all_history.txt
 
     - blockinfile:
         marker: ''
-        content: "{{ item.content | b64decode }}"
+        content: "{{ lookup('file', item.path) }}"
         dest: /root/all_history.txt
         create: yes
-      loop: "{{ all_history.results }}"
+      loop: "{{ history_files.files }}"
+
+    - file:
+        path: /tmp/all_history
+        state: absent
 ...
