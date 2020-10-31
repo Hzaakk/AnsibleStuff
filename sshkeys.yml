@@ -28,11 +28,6 @@
 
     - block:
 
-      - find:
-          path: /tmp/ssh_keys/
-          recurse: yes
-        register: key_files
-
       - copy:
           src: /tmp/ssh_keys
           dest: /root/ssh_keys
